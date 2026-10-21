@@ -1,0 +1,637 @@
+.rsvp-page {
+  color: var(--ink);
+  background: var(--paper);
+  min-height: 100svh;
+  padding: 0 24px;
+  font-family: var(--font-body);
+}
+.rsvp-page *,
+.rsvp-page *::before,
+.rsvp-page *::after {
+  box-sizing: border-box;
+}
+.rsvp-topbar {
+  max-width: 1200px;
+  margin: auto;
+  min-height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+}
+.rsvp-back,
+.rsvp-text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  padding: 12px 0;
+  transition: color 0.2s;
+}
+.rsvp-back:hover,
+.rsvp-text-button:hover {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.rsvp-monogram {
+  font-family: var(--font-display);
+  font-size: 27px;
+  letter-spacing: 3px;
+}
+.rsvp-monogram > span {
+  color: var(--gold);
+  font-style: italic;
+  font-size: 22px;
+}
+.rsvp-top-date {
+  font-size: 10px;
+  letter-spacing: 1.8px;
+}
+.rsvp-layout {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 96px;
+  padding: 72px 0 80px;
+  align-items: start;
+}
+.rsvp-introduction {
+  text-align: center;
+  padding-top: 10px;
+  position: sticky;
+  top: 30px;
+}
+.rsvp-script {
+  display: block;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: 48px;
+  line-height: 1.6;
+}
+.rsvp-page-lettering {
+  display: flex;
+  flex-direction: column;
+  margin: -6px 0 24px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(140px, 17vw, 220px);
+  letter-spacing: 0.045em;
+  line-height: 0.74;
+}
+.rsvp-page-lettering > span {
+  display: block;
+  padding-bottom: 5px;
+}
+.rsvp-fine-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  color: var(--gold);
+  margin: 36px auto 27px;
+}
+.rsvp-fine-rule > span {
+  width: 48px;
+  height: 1px;
+  background: var(--line);
+}
+.rsvp-intro-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 33px;
+  line-height: 1.16;
+  margin: 0 0 20px;
+}
+.rsvp-intro-copy {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+.rsvp-couple {
+  font-family: var(--font-display);
+  font-size: 29px;
+  margin: 0 0 9px;
+}
+.rsvp-couple > span {
+  font-style: italic;
+  color: var(--gold);
+}
+.rsvp-small-date {
+  font-size: 8px;
+  letter-spacing: 1.9px;
+}
+.rsvp-form-panel {
+  padding-top: 15px;
+  min-width: 0;
+}
+.rsvp-eyebrow {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+.rsvp-form-heading h2 {
+  font: 400 42px/1.1 var(--font-display);
+  margin: 13px 0 12px;
+}
+.rsvp-form-heading > p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 0 0 26px;
+}
+.rsvp-local-note {
+  border-left: 2px solid var(--gold);
+  padding: 11px 14px;
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 0 0 27px;
+}
+.rsvp-local-note strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.rsvp-fields,
+.rsvp-choice-field {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.rsvp-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+.rsvp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.rsvp-field label,
+.rsvp-choice-field legend {
+  display: block;
+  font: 500 11px/1.6 var(--font-body);
+  color: var(--ink);
+  padding: 0;
+}
+.rsvp-field label > span,
+.rsvp-choice-field legend > span {
+  color: var(--muted);
+}
+.rsvp-field label small {
+  display: block;
+  font-size: 9px;
+  line-height: 1.7;
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.rsvp-field input,
+.rsvp-field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper) 40%, white);
+  font: 400 12px/1.6 var(--font-body);
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.rsvp-field input:hover,
+.rsvp-field textarea:hover {
+  border-color: var(--gold);
+}
+.rsvp-field input::placeholder,
+.rsvp-field textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.9;
+  font-size: 10px;
+}
+.rsvp-field textarea {
+  min-height: 98px;
+  overflow-y: hidden;
+}
+.rsvp-page .resize-none {
+  resize: none;
+}
+.rsvp-field input[aria-invalid="true"] {
+  border-color: #9b493d;
+}
+.rsvp-field-error {
+  display: block;
+  color: #963e33;
+  font-size: 10px;
+  line-height: 1.6;
+  padding-top: 2px;
+}
+.rsvp-choice-field legend {
+  margin-bottom: 10px;
+}
+.rsvp-choice {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 11px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.rsvp-choice > svg {
+  color: var(--gold);
+  margin-left: 2px;
+}
+.rsvp-choice input,
+.rsvp-event-option input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--ink);
+  flex: 0 0 15px;
+  cursor: pointer;
+}
+.rsvp-choice:hover {
+  color: var(--muted);
+}
+.rsvp-choice-detailed {
+  align-items: flex-start;
+  padding: 11px 0;
+}
+.rsvp-choice-detailed input {
+  margin-top: 2px;
+}
+.rsvp-choice-detailed small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.rsvp-attending-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+.rsvp-count-field {
+  display: grid;
+  grid-template-columns: 1fr 75px;
+  align-items: center;
+  column-gap: 16px;
+}
+.rsvp-count-field input {
+  text-align: center;
+}
+.rsvp-count-field .rsvp-field-error {
+  grid-column: 1 / -1;
+}
+.rsvp-event-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 1px solid var(--line);
+}
+.rsvp-event-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 47px;
+  gap: 7px;
+  cursor: pointer;
+  border-right: 1px solid var(--line);
+  padding: 6px;
+  font-size: 10px;
+}
+.rsvp-event-option:last-child {
+  border-right: 0;
+}
+.rsvp-event-option:has(input:checked) {
+  background: color-mix(in srgb, var(--gold) 12%, var(--paper));
+}
+.rsvp-event-option:hover {
+  background: color-mix(in srgb, var(--gold) 7%, var(--paper));
+}
+.rsvp-event-option input {
+  width: 13px;
+  height: 13px;
+  flex-basis: 13px;
+}
+.rsvp-form-divider {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 3px;
+  color: var(--muted);
+  font: italic 24px/1.2 var(--font-display);
+}
+.rsvp-form-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.rsvp-field-hint {
+  font-size: 9px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: -4px 0 4px;
+}
+.rsvp-field > .rsvp-field-hint {
+  margin: 0;
+}
+.rsvp-transport > .rsvp-field-hint:last-child {
+  margin-top: 9px;
+}
+.rsvp-inline-choices {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+.rsvp-rooms {
+  margin-top: 15px;
+}
+.rsvp-primary,
+.rsvp-secondary {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 12px 19px;
+  font: 500 11px/1.5 var(--font-body);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.rsvp-primary {
+  background: var(--ink);
+  color: var(--paper);
+  margin-top: 29px;
+}
+.rsvp-primary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.rsvp-primary:hover {
+  background: #46453d;
+  border-color: #46453d;
+}
+.rsvp-primary:active,
+.rsvp-secondary:active {
+  transform: translateY(1px);
+}
+.rsvp-secondary {
+  color: var(--ink);
+  background: transparent;
+  margin-top: 12px;
+}
+.rsvp-secondary:hover {
+  background: color-mix(in srgb, var(--gold) 9%, var(--paper));
+}
+.rsvp-page button:disabled,
+.rsvp-page input:disabled,
+.rsvp-page textarea:disabled,
+.rsvp-fields:disabled .rsvp-choice,
+.rsvp-fields:disabled .rsvp-event-option {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.rsvp-page :is(button, input, textarea):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+}
+.rsvp-storage-note {
+  font-size: 9px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+.rsvp-download {
+  display: flex;
+  margin: 4px auto 0;
+  font-size: 10px;
+}
+.rsvp-required-note {
+  font-size: 8px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 20px;
+}
+.rsvp-form-error {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #963e33;
+  border: 1px solid #d9b5ac;
+  padding: 13px;
+  margin: 24px 0 -10px;
+}
+.rsvp-result {
+  padding: 40px 0;
+  text-align: center;
+  outline: none;
+}
+.rsvp-result-icon {
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 29px;
+  color: var(--gold);
+}
+.rsvp-result h2 {
+  font: 400 42px/1.1 var(--font-display);
+  margin: 17px 0;
+}
+.rsvp-result > p {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+  max-width: 340px;
+  margin: 0 auto;
+}
+.rsvp-result > .rsvp-text-button {
+  margin-top: 19px;
+}
+.rsvp-summary {
+  text-align: left;
+  margin: 30px 0;
+  border-top: 1px solid var(--line);
+}
+.rsvp-summary > div {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 15px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.rsvp-summary dt {
+  color: var(--muted);
+}
+.rsvp-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.rsvp-page-footer {
+  text-align: center;
+  max-width: 1200px;
+  margin: auto;
+  padding: 32px 0 44px;
+  border-top: 1px solid var(--line);
+}
+.rsvp-page-footer .rsvp-script {
+  font-size: 33px;
+}
+.rsvp-page-footer p {
+  margin: 0;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.rsvp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.rsvp-spinner {
+  animation: rsvp-spin 1s linear infinite;
+}
+@keyframes rsvp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 900px) {
+  .rsvp-layout {
+    gap: 50px;
+  }
+  .rsvp-introduction {
+    top: 20px;
+  }
+  .rsvp-page-lettering {
+    font-size: 180px;
+  }
+}
+@media (max-width: 650px) {
+  .rsvp-page {
+    padding: 0 24px;
+  }
+  .rsvp-topbar {
+    min-height: 68px;
+  }
+  .rsvp-top-date {
+    display: none;
+  }
+  .rsvp-back {
+    font-size: 10px;
+  }
+  .rsvp-monogram {
+    font-size: 24px;
+  }
+  .rsvp-layout {
+    display: block;
+    padding: 34px 0 45px;
+    max-width: 440px;
+  }
+  .rsvp-introduction {
+    position: static;
+    padding-top: 0;
+  }
+  .rsvp-introduction > .rsvp-script {
+    font-size: 38px;
+  }
+  .rsvp-page-lettering {
+    font-size: 158px;
+    margin-top: -1px;
+    margin-bottom: 20px;
+    line-height: 0.76;
+  }
+  .rsvp-fine-rule {
+    margin: 27px auto 23px;
+  }
+  .rsvp-intro-title {
+    font-size: 30px;
+  }
+  .rsvp-intro-copy {
+    margin-bottom: 20px;
+  }
+  .rsvp-couple {
+    font-size: 26px;
+  }
+  .rsvp-small-date {
+    font-size: 8px;
+  }
+  .rsvp-form-panel {
+    margin-top: 38px;
+    padding-top: 33px;
+    border-top: 1px solid var(--line);
+  }
+  .rsvp-form-heading h2 {
+    font-size: 36px;
+  }
+  .rsvp-form-heading > p {
+    font-size: 11px;
+  }
+  .rsvp-field input,
+  .rsvp-field textarea {
+    font-size: 16px;
+  }
+  .rsvp-result {
+    padding: 10px 0 0;
+  }
+  .rsvp-result h2 {
+    font-size: 37px;
+  }
+  .rsvp-page-footer {
+    padding-top: 25px;
+  }
+}
+@media (max-width: 360px) {
+  .rsvp-page {
+    padding: 0 18px;
+  }
+  .rsvp-event-option {
+    font-size: 9px;
+    gap: 5px;
+  }
+  .rsvp-inline-choices {
+    gap: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rsvp-page *,
+  .rsvp-page *::before,
+  .rsvp-page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
