@@ -22,42 +22,90 @@ import {
   readLocalRsvp,
   submitRsvp,
   validateRsvp,
+  valuesForInvitation,
   valuesFromPayload,
   type RsvpErrors,
+  type RsvpInvitation,
+  type RsvpPayload,
   type RsvpResult,
   type RsvpValues,
 } from "../lib/rsvp";
 import "./RsvpPage.css";
 
 // Keep an in-progress response when guests move between the invitation and this page.
-// Personal details are written to storage only when the guest explicitly saves.
-let sessionDraft: RsvpValues | null = null;
+// Personalized details stay in memory, isolated by invitation and server revision.
+const sessionDrafts = new Map<
+  string,
+  { values: RsvpValues; revision: string; submissionId: string | null }
+>();
 
-export function RsvpPage({ onBack }: { onBack: () => void }) {
-  const [saved] = useState(readLocalRsvp);
-  const [values, setValues] = useState<RsvpValues>(
-    () =>
-      sessionDraft ??
-      (saved ? valuesFromPayload(saved) : { ...emptyRsvpValues }),
+interface RsvpPageProps {
+  onBack: () => void;
+  invitation?: RsvpInvitation;
+  onSaved?: (payload: RsvpPayload) => void;
+}
+
+export function RsvpPage(props: RsvpPageProps) {
+  // A different invitation must never inherit another guest's mounted form.
+  const identity = props.invitation
+    ? JSON.stringify([
+        props.invitation.token,
+        props.invitation.name,
+        props.invitation.events,
+      ])
+    : "demo";
+  return <RsvpForm key={identity} {...props} />;
+}
+
+function RsvpForm({ onBack, invitation, onSaved }: RsvpPageProps) {
+  const scope = invitation?.token ?? "demo";
+  const revision = invitation
+    ? JSON.stringify([
+        invitation.name,
+        invitation.events,
+        invitation.response?.submissionId,
+        invitation.response?.respondedAt,
+      ])
+    : "demo";
+  const [saved, setSaved] = useState(() =>
+    invitation ? invitation.response : readLocalRsvp(),
   );
+  const initialValues = invitation
+    ? valuesForInvitation(invitation)
+    : saved
+      ? valuesFromPayload(saved)
+      : { ...emptyRsvpValues };
+  const [values, setValues] = useState<RsvpValues>(() => {
+    const draft = sessionDrafts.get(scope);
+    return draft?.revision === revision ? draft.values : initialValues;
+  });
   const [errors, setErrors] = useState<RsvpErrors>({});
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");
   const [result, setResult] = useState<RsvpResult | null>(null);
   const [committedValues, setCommittedValues] = useState(() =>
-    JSON.stringify(saved ? valuesFromPayload(saved) : emptyRsvpValues),
+    JSON.stringify(initialValues),
   );
   const formRef = useRef<HTMLFormElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
-  const submissionId = useRef<string | null>(null);
+  const submissionId = useRef<string | null>(
+    sessionDrafts.get(scope)?.revision === revision
+      ? (sessionDrafts.get(scope)?.submissionId ?? null)
+      : null,
+  );
   const submitting = useRef(false);
-  const isLocal = !RSVP_ENDPOINT;
+  const isLocal = !invitation && !RSVP_ENDPOINT;
+  const allowsReception = !invitation || invitation.events === "both";
   const attending = values.attending === "yes";
   const changed = JSON.stringify(values) !== committedValues;
 
   useEffect(() => {
-    sessionDraft = values;
-  }, [values]);
+    sessionDrafts.set(scope, {
+      values,
+      revision,
+      submissionId: submissionId.current,
+    });
+  }, [values, scope, revision]);
 
   useEffect(() => {
     if (!changed || result) return;
@@ -88,6 +136,7 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
   }, [values.foodAllergies, values.message, attending, result]);
 
   function update<K extends keyof RsvpValues>(field: K, value: RsvpValues[K]) {
+    if (submitting.current || values[field] === value) return;
     const next = { ...values, [field]: value };
     setValues(next);
     if (errors[field])
@@ -97,6 +146,7 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
       }));
     setProblem("");
     submissionId.current = null;
+    sessionDrafts.set(scope, { values: next, revision, submissionId: null });
   }
 
   function validate(): boolean {
@@ -121,11 +171,27 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
     setBusy(true);
     setProblem("");
     submissionId.current ??= createSubmissionId();
+    // Keep the pending operation identity when navigating to the invitation and
+    // back after an uncertain network result. A retry must not become a new write.
+    sessionDrafts.set(scope, {
+      values,
+      revision,
+      submissionId: submissionId.current,
+    });
     try {
-      setResult(
-        await submitRsvp(values, { submissionId: submissionId.current }),
-      );
-      setCommittedValues(JSON.stringify(values));
+      const received = await submitRsvp(values, {
+        submissionId: submissionId.current,
+        invitation,
+      });
+      const committed = invitation
+        ? valuesForInvitation({ ...invitation, response: received.payload })
+        : valuesFromPayload(received.payload);
+      submissionId.current = null;
+      setValues(committed);
+      setSaved(received.payload);
+      setResult(received);
+      setCommittedValues(JSON.stringify(committed));
+      if (invitation) onSaved?.(received.payload);
     } catch (error) {
       setProblem(
         error instanceof Error
@@ -285,7 +351,11 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
                   YOUR PRESENCE IS OUR PRESENT
                 </span>
                 <h2>Will you join us?</h2>
-                <p>One response for you and your party.</p>
+                <p>
+                  {invitation
+                    ? `${invitation.name}, we would love to hear from you.`
+                    : "One response for you and your party."}
+                </p>
               </div>
               {isLocal && (
                 <p className="rsvp-local-note">
@@ -296,8 +366,9 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
               )}
               {saved && !isLocal && (
                 <p className="rsvp-local-note">
-                  Your previously saved answers are filled in below. Send your
-                  RSVP to share them with the couple.
+                  {invitation
+                    ? "We have your RSVP. Your latest answers are filled in below; send an update if your plans have changed."
+                    : "Your previously saved answers are filled in below. Send your RSVP to share them with the couple."}
                 </p>
               )}
               <form
@@ -406,37 +477,45 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
                         />
                         {fieldError("guestCount")}
                       </div>
-                      <fieldset className="rsvp-choice-field">
-                        <legend>
-                          Which celebrations will you attend?{" "}
-                          <span aria-hidden="true">*</span>
-                        </legend>
-                        <div className="rsvp-event-options">
-                          {(
-                            [
-                              { value: "wedding", label: "Wedding" },
-                              { value: "reception", label: "Reception" },
-                              { value: "both", label: "Both" },
-                            ] as const
-                          ).map((option) => (
-                            <label
-                              className="rsvp-event-option"
-                              key={option.value}
-                            >
-                              <input
-                                type="radio"
-                                name="events"
-                                value={option.value}
-                                checked={values.events === option.value}
-                                onChange={() => update("events", option.value)}
-                                {...errorProps("events")}
-                              />
-                              <span>{option.label}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {fieldError("events")}
-                      </fieldset>
+                      {allowsReception ? (
+                        <fieldset className="rsvp-choice-field">
+                          <legend>
+                            Which celebrations will you attend?{" "}
+                            <span aria-hidden="true">*</span>
+                          </legend>
+                          <div className="rsvp-event-options">
+                            {(
+                              [
+                                { value: "wedding", label: "Wedding" },
+                                { value: "reception", label: "Reception" },
+                                { value: "both", label: "Both" },
+                              ] as const
+                            ).map((option) => (
+                              <label
+                                className="rsvp-event-option"
+                                key={option.value}
+                              >
+                                <input
+                                  type="radio"
+                                  name="events"
+                                  value={option.value}
+                                  checked={values.events === option.value}
+                                  onChange={() =>
+                                    update("events", option.value)
+                                  }
+                                  {...errorProps("events")}
+                                />
+                                <span>{option.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {fieldError("events")}
+                        </fieldset>
+                      ) : (
+                        <p className="rsvp-field-hint">
+                          We look forward to seeing you at the wedding ceremony.
+                        </p>
+                      )}
                       <div className="rsvp-form-divider">
                         <span>A little planning</span>
                       </div>
@@ -464,32 +543,37 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
                             </span>
                           </label>
                         )}
-                        {(values.events === "both" ||
-                          values.events === "reception") && (
-                          <label className="rsvp-choice rsvp-choice-detailed">
-                            <input
-                              type="checkbox"
-                              name="receptionTransport"
-                              checked={values.receptionTransport}
-                              onChange={(event) =>
-                                update(
-                                  "receptionTransport",
-                                  event.target.checked,
-                                )
-                              }
-                            />
-                            <span>
-                              Reception
-                              <small>
-                                Departure · 5:00 PM / Return · 8:30 PM
-                              </small>
-                            </span>
-                          </label>
-                        )}
-                        <p className="rsvp-field-hint">
-                          For an earlier return, please arrange your own
-                          transport. The reception continues until 10:00 PM.
-                        </p>
+                        {allowsReception &&
+                          (values.events === "both" ||
+                            values.events === "reception") && (
+                            <label className="rsvp-choice rsvp-choice-detailed">
+                              <input
+                                type="checkbox"
+                                name="receptionTransport"
+                                checked={values.receptionTransport}
+                                onChange={(event) =>
+                                  update(
+                                    "receptionTransport",
+                                    event.target.checked,
+                                  )
+                                }
+                              />
+                              <span>
+                                Reception
+                                <small>
+                                  Departure · 5:00 PM / Return · 8:30 PM
+                                </small>
+                              </span>
+                            </label>
+                          )}
+                        {allowsReception &&
+                          (values.events === "both" ||
+                            values.events === "reception") && (
+                            <p className="rsvp-field-hint">
+                              For an earlier return, please arrange your own
+                              transport. The reception continues until 10:00 PM.
+                            </p>
+                          )}
                       </fieldset>
                       <fieldset className="rsvp-choice-field">
                         <legend>Would you like accommodation?</legend>
@@ -559,7 +643,9 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
                             update("foodAllergies", event.target.value)
                           }
                           placeholder="Anything we should know to look after you?"
+                          {...errorProps("foodAllergies")}
                         />
+                        {fieldError("foodAllergies")}
                         <p className="rsvp-field-hint">
                           Please tell us about any food allergies so we can plan
                           with care.
@@ -581,7 +667,9 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
                         update("message", event.target.value)
                       }
                       placeholder="Your wishes, a favourite memory, or just a hello…"
+                      {...errorProps("message")}
                     />
+                    {fieldError("message")}
                   </div>
                 </fieldset>
                 {problem && (
@@ -600,7 +688,11 @@ export function RsvpPage({ onBack }: { onBack: () => void }) {
                       </>
                     ) : (
                       <>
-                        {isLocal ? "Save my response" : "Send my RSVP"}{" "}
+                        {isLocal
+                          ? "Save my response"
+                          : saved
+                            ? "Send my updated RSVP"
+                            : "Send my RSVP"}{" "}
                         <ArrowRight size={17} />
                       </>
                     )}

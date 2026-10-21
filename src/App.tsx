@@ -25,6 +25,7 @@ import { Rings } from "./components/Rings";
 import { RsvpPage } from "./components/RsvpPage";
 import { wedding, weddingEvents, receptionEvents } from "./data/wedding";
 import { downloadWeddingCalendar } from "./lib/calendar";
+import type { RsvpInvitation, RsvpPayload } from "./lib/rsvp";
 
 function SectionTitle({
   script,
@@ -89,8 +90,11 @@ const receptionIcons: LucideIcon[] = [
   Moon,
 ];
 
-function Program() {
+function Program({ hasReception }: { hasReception: boolean }) {
   const [selected, setSelected] = useState<"wedding" | "reception">("wedding");
+  const choices = hasReception
+    ? (["wedding", "reception"] as const)
+    : (["wedding"] as const);
   const events = selected === "wedding" ? weddingEvents : receptionEvents;
   const icons = selected === "wedding" ? weddingIcons : receptionIcons;
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -103,7 +107,7 @@ function Program() {
         role="tablist"
         aria-label="Celebration program"
       >
-        {(["wedding", "reception"] as const).map((item, index) => (
+        {choices.map((item, index) => (
           <button
             key={item}
             ref={(el) => {
@@ -124,8 +128,8 @@ function Program() {
                   event.key === "Home"
                     ? 0
                     : event.key === "End"
-                      ? 1
-                      : 1 - index;
+                      ? choices.length - 1
+                      : (index + 1) % choices.length;
                 setSelected(next ? "reception" : "wedding");
                 tabs.current[next]?.focus();
               }
@@ -177,7 +181,14 @@ function Program() {
   );
 }
 
-function App() {
+function App({
+  invitation,
+  onSaved,
+}: {
+  invitation?: RsvpInvitation;
+  onSaved?: (payload: RsvpPayload) => void;
+}) {
+  const hasReception = !invitation || invitation.events === "both";
   const [isRsvp, setIsRsvp] = useState(window.location.hash === "#rsvp");
   const [calendarStatus, setCalendarStatus] = useState("");
   useEffect(() => {
@@ -195,9 +206,11 @@ function App() {
       : "Visakh & Archana | 11 February 2027";
   }, [isRsvp]);
   const calendar = () => {
-    downloadWeddingCalendar();
+    downloadWeddingCalendar(hasReception);
     setCalendarStatus(
-      "Your calendar file is ready. Open it to add both celebrations.",
+      hasReception
+        ? "Your calendar file is ready. Open it to add both celebrations."
+        : "Your calendar file is ready. Open it to add the wedding ceremony.",
     );
     window.setTimeout(() => setCalendarStatus(""), 6000);
   };
@@ -250,7 +263,11 @@ function App() {
       </header>
       <main id="main" tabIndex={-1}>
         {isRsvp ? (
-          <RsvpPage onBack={returnToInvitation} />
+          <RsvpPage
+            onBack={returnToInvitation}
+            invitation={invitation}
+            onSaved={onSaved}
+          />
         ) : (
           <>
             <section
@@ -286,7 +303,9 @@ function App() {
                   Visakh <span>&</span> Archana
                 </h1>
                 <p className="hero-invitation">
-                  Invite you to celebrate our wedding
+                  {invitation
+                    ? `Invite you, ${invitation.name}, to celebrate our wedding`
+                    : "Invite you to celebrate our wedding"}
                 </p>
                 <div className="hero-date">
                   <span>Thursday</span>
@@ -312,6 +331,17 @@ function App() {
             </section>
 
             <section className="welcome section-pad" id="welcome">
+              {invitation && (
+                <div className="guest-dedication">
+                  <p className="eyebrow">An invitation especially for</p>
+                  <p className="guest-name">{invitation.name}</p>
+                  <p>
+                    We would be delighted to share{" "}
+                    {hasReception ? "our wedding and reception" : "our wedding"}{" "}
+                    with you.
+                  </p>
+                </div>
+              )}
               <Rings className="welcome-rings" />
               <SectionTitle script="the">Countdown</SectionTitle>
               <p className="eyebrow countdown-eyebrow">To our forever</p>
@@ -341,8 +371,12 @@ function App() {
             </section>
 
             <section className="venues section-pad" id="celebrations">
-              <SectionTitle script="join us for">The celebrations</SectionTitle>
-              <div className="venue-grid">
+              <SectionTitle script="join us for">
+                {hasReception ? "The celebrations" : "Our wedding"}
+              </SectionTitle>
+              <div
+                className={`venue-grid ${hasReception ? "" : "venue-grid-single"}`}
+              >
                 <article>
                   <Flower2 className="venue-icon" size={35} strokeWidth={1} />
                   <p className="eyebrow">The wedding</p>
@@ -371,41 +405,45 @@ function App() {
                     <ArrowUpRight size={14} />
                   </a>
                 </article>
-                <div className="venue-divider">
-                  <span>&</span>
-                </div>
-                <article>
-                  <Wine className="venue-icon" size={35} strokeWidth={1} />
-                  <p className="eyebrow">The reception</p>
-                  <h3>
-                    Marine Pride Beach Resort
-                    <br />
-                    Varkala
-                  </h3>
-                  <p>
-                    Thursday, 11 February 2027
-                    <br />
-                    <strong>6:00 PM – 10:00 PM</strong>
-                  </p>
-                  <p className="venue-note">
-                    An evening of laughter, celebration,
-                    <br />
-                    and a little dancing under the stars.
-                  </p>
-                  <a
-                    className="text-link"
-                    href="https://www.google.com/maps/search/?api=1&query=Marine+Pride+Beach+Resort+Varkala"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <MapPin size={14} /> View directions{" "}
-                    <ArrowUpRight size={14} />
-                  </a>
-                </article>
+                {hasReception && (
+                  <>
+                    <div className="venue-divider">
+                      <span>&</span>
+                    </div>
+                    <article>
+                      <Wine className="venue-icon" size={35} strokeWidth={1} />
+                      <p className="eyebrow">The reception</p>
+                      <h3>
+                        Marine Pride Beach Resort
+                        <br />
+                        Varkala
+                      </h3>
+                      <p>
+                        Thursday, 11 February 2027
+                        <br />
+                        <strong>6:00 PM – 10:00 PM</strong>
+                      </p>
+                      <p className="venue-note">
+                        An evening of laughter, celebration,
+                        <br />
+                        and a little dancing under the stars.
+                      </p>
+                      <a
+                        className="text-link"
+                        href="https://www.google.com/maps/search/?api=1&query=Marine+Pride+Beach+Resort+Varkala"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <MapPin size={14} /> View directions{" "}
+                        <ArrowUpRight size={14} />
+                      </a>
+                    </article>
+                  </>
+                )}
               </div>
             </section>
 
-            <Program />
+            <Program hasReception={hasReception} />
 
             <section className="details" id="details">
               <div className="details-image">
@@ -426,8 +464,12 @@ function App() {
                     <h3>Dress code</h3>
                     <p>
                       <strong>Wedding</strong> · Traditional or everyday wear.
-                      <br />
-                      <strong>Reception</strong> · Formal party wear.
+                      {hasReception && (
+                        <>
+                          <br />
+                          <strong>Reception</strong> · Formal party wear.
+                        </>
+                      )}
                     </p>
                     <span>Come comfortable, come as you.</span>
                   </div>
@@ -440,14 +482,21 @@ function App() {
                       <strong>Wedding</strong> · Transport from the groom’s
                       home, from 9:00 AM onwards.
                     </p>
-                    <p>
-                      <strong>Reception</strong> · Departure at 5:00 PM and
-                      return at 8:30 PM.
-                    </p>
-                    <span>
-                      Staying for the DJ, or leaving early? Please arrange your
-                      own transport. Let us know your travel needs in your RSVP.
-                    </span>
+                    {hasReception ? (
+                      <>
+                        <p>
+                          <strong>Reception</strong> · Departure at 5:00 PM and
+                          return at 8:30 PM.
+                        </p>
+                        <span>
+                          Staying for the DJ, or leaving early? Please arrange
+                          your own transport. Let us know your travel needs in
+                          your RSVP.
+                        </span>
+                      </>
+                    ) : (
+                      <span>Let us know your travel needs in your RSVP.</span>
+                    )}
                   </div>
                 </div>
                 <div className="detail-item">
@@ -523,7 +572,8 @@ function App() {
             </footer>
             <div className="colophon">
               <span>
-                Visakh<Heart size={11} /> Archana
+                Visakh
+                <Heart size={11} /> Archana
               </span>
               <a href="#invitation">Back to the beginning ↑</a>
             </div>

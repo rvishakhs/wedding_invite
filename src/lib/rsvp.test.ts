@@ -6,6 +6,8 @@ import {
   readLocalRsvp,
   submitRsvp,
   validateRsvp,
+  valuesForInvitation,
+  type RsvpInvitation,
   type RsvpValues,
 } from "./rsvp";
 
@@ -187,6 +189,120 @@ describe("RSVP delivery", () => {
       submitRsvp(emptyRsvpValues, { endpoint: "/api/rsvp" }),
     ).rejects.toThrow("check your answers");
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+});
+
+describe("personalized invitations", () => {
+  const invitation: RsvpInvitation = {
+    token: "guest-link",
+    name: "Anjali and family",
+    events: "wedding",
+    response: null,
+  };
+
+  it("prefills the invitation name and permitted celebration without a guest allowance", () => {
+    const values = valuesForInvitation(invitation);
+    expect(values.fullName).toBe("Anjali and family");
+    expect(values.events).toBe("wedding");
+    expect(
+      validateRsvp({
+        ...values,
+        contact: "anjali@example.com",
+        attending: "yes",
+        guestCount: "30",
+      }),
+    ).toEqual({});
+  });
+
+  it("restores the saved response while removing reception access after an invitation change", () => {
+    const values = valuesForInvitation({
+      ...invitation,
+      response: buildRsvpPayload(accepted, "existing-response"),
+    });
+    expect(values).toMatchObject({
+      fullName: "Anjali Kumar",
+      contact: "anjali@example.com",
+      guestCount: "3",
+      events: "wedding",
+      receptionTransport: false,
+      weddingTransport: true,
+    });
+  });
+
+  it("uses the invitation endpoint and server-confirmed payload without local storage", async () => {
+    const storage = mockStorage();
+    const values = { ...accepted, events: "wedding" as const };
+    const confirmed = {
+      ...buildRsvpPayload(values, "server-current-response"),
+      respondedAt: "2026-10-21T12:00:00Z",
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ response: confirmed }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await submitRsvp(values, {
+      invitation,
+      endpoint: "",
+      submissionId: "replayed-id",
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/invitations/guest-link/rsvp",
+      expect.objectContaining({
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": "replayed-id",
+        },
+      }),
+    );
+    expect(result).toEqual({ delivery: "sent", payload: confirmed });
+    expect(storage.setItem).not.toHaveBeenCalled();
+    expect(storage.getItem).not.toHaveBeenCalled();
+  });
+
+  it("blocks a reception response for a wedding-only invitation before sending", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(submitRsvp(accepted, { invitation })).rejects.toThrow(
+      "invitation details have changed",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([401, 403, 404, 410])(
+    "shows unavailable invitation feedback for HTTP %s without saving locally",
+    async (status) => {
+      const storage = mockStorage();
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status }));
+      await expect(
+        submitRsvp({ ...accepted, events: "wedding" }, { invitation }),
+      ).rejects.toThrow("invitation is no longer available");
+      expect(storage.setItem).not.toHaveBeenCalled();
+    },
+  );
+
+  it("keeps a conflicting response unconfirmed so the guest can review current details", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 409 }),
+    );
+    await expect(
+      submitRsvp({ ...accepted, events: "wedding" }, { invitation }),
+    ).rejects.toThrow("invitation or response has changed");
+  });
+
+  it("does not claim delivery for an empty or malformed success response", async () => {
+    const storage = mockStorage();
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue({ ok: true, json: async () => ({ response: {} }) }),
+    );
+    await expect(
+      submitRsvp({ ...accepted, events: "wedding" }, { invitation }),
+    ).rejects.toThrow("could not confirm");
     expect(storage.setItem).not.toHaveBeenCalled();
   });
 });

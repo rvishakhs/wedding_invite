@@ -6,11 +6,11 @@ import "@fontsource/cormorant-garamond/latin-400-italic.css";
 import "@fontsource/manrope/latin-400.css";
 import "@fontsource/manrope/latin-500.css";
 import "@fontsource/ballet/latin-400.css";
-import App from "./App";
+import { Entry } from "./Entry";
 import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <Entry />
   </React.StrictMode>,
 );

@@ -41,7 +41,7 @@ components:
 
 The two supplied invitation-template reference images are the visual authority. Preserve their portrait-photo pages, refined serif capitals, thin rules, cursive phrases, interlocking rings, alternating vertical timelines with gold dots, giant stacked RS/VP, and a photographic date footer. The user's photos and confirmed event information replace example content. No JSON reference is required.
 
-Guests are friends and family attending a Hindu temple wedding in Kerala, India. English is the supplied language, with Indian local event times (Asia/Kolkata). Phone browsing takes priority. The invitation is a brand/content surface; the separate #rsvp page has a simple form contract. No admin app, dashboard, account system or extra functionality is implied.
+Guests are friends and family attending a Hindu temple wedding in Kerala, India. English is the supplied language, with Indian local event times (Asia/Kolkata). Phone browsing takes priority. The invitation is a brand/content surface; the separate #rsvp page has a simple form contract. The approved management phase adds a private `/admin` product surface and dynamic `/invite/{token}` invitations; photography and invitation styling remain unchanged. Galleries and memories are reserved for a later phase.
 
 The signature is white invitation lettering blended into the full-height portrait, echoed by oversized RS/VP letters. Avoid bright colours, elevated cards, generic dashboard layouts, and ornamental background patterns absent from the references.
 
@@ -71,7 +71,7 @@ Buttons are slim pills; controls are rectangular. Decorative circles are restric
 
 `App.tsx` owns navigation, countdown, venues, program tabs, details and shared calendar feedback. `RsvpPage.tsx` owns form validation, accessible labels, status and focus recovery. `src/lib/rsvp.ts` owns draft persistence and endpoint submission. `src/lib/calendar.ts` owns the calendar payload with UTC instants for both events.
 
-RSVP without VITE_RSVP_ENDPOINT saves a draft in the current browser only and explicitly states that it has not been sent to the couple. A JSON download lets guests retain that draft. An endpoint integration must acknowledge success before the form claims delivery. Fields retain values on errors. No secrets or backend service credentials belong in Vite environment variables.
+Personalized invitations submit RSVP responses to FastAPI/SQLite and reload their saved response from the server. The generic preview retains explicitly labeled local drafts. Personalized drafts never use generic localStorage. Fields retain values on errors, and delivery is claimed only after server acknowledgement. No secrets or backend service credentials belong in Vite environment variables.
 
 Buttons have hover, focus-visible, active and disabled states. Tabs use aria-selected and keyboard arrows. Inline errors are associated with fields. Pending submission keeps button dimensions stable and prevents duplicate submissions. All time/date content uses the wedding's Indian timezone, independently of browser timezone.
 
@@ -83,10 +83,14 @@ Global scrollbars have thumb, track, hover, active and forced-colors behavior. R
 - Follow the visual reference closely while retaining readable labels and touch targets.
 - Keep the wedding and reception programs separately accessible in the same timeline pattern.
 - Never invent an RSVP deadline or imply an unsent local draft reached the hosts.
-- Never add backend accounts or server persistence until requested and connected.
+- Keep admin authentication and RSVP persistence on the server; no client-side secrets or invented guest allowances.
 
 ## Reference refinements
 
 The October 2026 refinement uses a path-based gold A/V monogram with small ivory blossoms (`public/monogram.svg`), without names underneath. It replaces the header initials and preserves the accessible invitation link. The jewellery illustration in `src/components/Rings.tsx` uses bevelled gold bands, overlapping perspective, and faceted stones inspired by the supplied ring reference; it is vector artwork, not a photograph. Each instance owns unique gradient IDs. Background placements stay translucent to protect timeline and RSVP lettering.
 
 Hero and footer photographs fade vertically into their adjacent paper/white surfaces by masking the entire photo, shade and blur composition together with eased alpha stops and fully transparent edge pixels. The unmasked paper surface matches adjacent sections exactly; text stays outside the masked artwork. The hero shade is restrained to avoid a dark stripe at the start of the fade. Venue sections also blend into white at their edges rather than using hard divider rules. These local illustration and photo gradients are composition details; the shared palette and typography remain unchanged.
+
+## Management surface
+
+The dashboard uses the same canonical `src/styles.css :root` paper, white, ink, muted, gold, line and danger tokens, Cormorant headings and Manrope controls. It is a working guest list: compact summary counts, a searchable paginated table, restrained rules and readable form labels. Wedding photography and script flourishes belong to guest invitations rather than admin tasks. `AdminPage.css` scopes product layout and control variants without changing invitation styles. `UX-CONTRACT.md` records canonical admin controls, feedback, navigation, error recovery and server authorization. Native status select geometry is accepted; event choices use radios. Guest-name search remains transient to avoid personal details in URLs.

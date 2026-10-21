@@ -144,6 +144,7 @@
   margin: 13px 0 12px;
 }
 .rsvp-form-heading > p {
+  overflow-wrap: anywhere;
   font-size: 11px;
   line-height: 1.7;
   color: var(--muted);

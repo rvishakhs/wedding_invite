@@ -7,3 +7,12 @@ dist/
 qa/
 *.tar.gz
 *.zip
+
+# Backend runtime, credentials and database backups
+backend/.venv/
+backend/data/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.sqlite*
+*.db

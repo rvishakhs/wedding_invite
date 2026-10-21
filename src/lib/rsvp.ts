@@ -38,6 +38,13 @@ export interface RsvpResult {
   payload: RsvpPayload;
 }
 
+export interface RsvpInvitation {
+  token: string;
+  name: string;
+  events: "wedding" | "both";
+  response: RsvpPayload | null;
+}
+
 export const RSVP_STORAGE_KEY = "visakh-archana:rsvp:v1";
 export const RSVP_ENDPOINT =
   (import.meta.env.VITE_RSVP_ENDPOINT as string | undefined)?.trim() ?? "";
@@ -59,6 +66,8 @@ export const emptyRsvpValues: RsvpValues = {
 export function validateRsvp(values: RsvpValues): RsvpErrors {
   const errors: RsvpErrors = {};
   if (!values.fullName.trim()) errors.fullName = "Please enter your name.";
+  else if (values.fullName.trim().length > 200)
+    errors.fullName = "Please keep your name within 200 characters.";
   const contact = values.contact.trim();
   if (!contact) {
     errors.contact = "Please enter an email address or phone number.";
@@ -95,7 +104,14 @@ export function validateRsvp(values: RsvpValues): RsvpErrors {
       errors.rooms =
         "Enter at least 1 room, or leave this blank to arrange it later.";
     }
+    if (values.foodAllergies.trim().length > 2000)
+      errors.foodAllergies =
+        "Please keep dietary requirements within 2,000 characters.";
   }
+  if (contact.length > 254)
+    errors.contact = "Please keep your contact details within 254 characters.";
+  if (values.message.trim().length > 5000)
+    errors.message = "Please keep your note within 5,000 characters.";
   return errors;
 }
 
@@ -160,52 +176,87 @@ export function valuesFromPayload(payload: RsvpPayload): RsvpValues {
   };
 }
 
+export function valuesForInvitation(invitation: RsvpInvitation): RsvpValues {
+  const values = invitation.response
+    ? valuesFromPayload(invitation.response)
+    : { ...emptyRsvpValues, fullName: invitation.name };
+  // Previously submitted responses may predate a change in event access.
+  if (invitation.events === "wedding") {
+    return { ...values, events: "wedding", receptionTransport: false };
+  }
+  return values;
+}
+
+function isRsvpPayload(value: unknown): value is RsvpPayload {
+  if (!value || typeof value !== "object") return false;
+  const payload = value as RsvpPayload;
+  if (
+    payload.schemaVersion !== 1 ||
+    payload.occasion !== "visakh-archana-2027-02-11" ||
+    typeof payload.submissionId !== "string" ||
+    typeof payload.respondedAt !== "string" ||
+    !Number.isFinite(Date.parse(payload.respondedAt)) ||
+    typeof payload.fullName !== "string" ||
+    typeof payload.contact !== "string" ||
+    typeof payload.attending !== "boolean" ||
+    !Number.isSafeInteger(payload.guestCount) ||
+    !Array.isArray(payload.events) ||
+    !payload.events.every(
+      (event) => event === "wedding" || event === "reception",
+    ) ||
+    new Set(payload.events).size !== payload.events.length ||
+    typeof payload.transportation?.wedding !== "boolean" ||
+    typeof payload.transportation?.reception !== "boolean" ||
+    typeof payload.accommodation?.required !== "boolean" ||
+    !(
+      payload.accommodation.rooms === null ||
+      Number.isSafeInteger(payload.accommodation.rooms)
+    ) ||
+    typeof payload.foodAllergies !== "string" ||
+    typeof payload.message !== "string"
+  )
+    return false;
+  return !Object.keys(validateRsvp(valuesFromPayload(payload))).length;
+}
+
 export function readLocalRsvp(): RsvpPayload | null {
   try {
     const stored = localStorage.getItem(RSVP_STORAGE_KEY);
     if (!stored) return null;
-    const value = JSON.parse(stored) as RsvpPayload;
-    if (
-      value.schemaVersion !== 1 ||
-      value.occasion !== "visakh-archana-2027-02-11" ||
-      typeof value.submissionId !== "string" ||
-      typeof value.respondedAt !== "string" ||
-      typeof value.fullName !== "string" ||
-      typeof value.contact !== "string" ||
-      typeof value.attending !== "boolean" ||
-      typeof value.guestCount !== "number" ||
-      !Array.isArray(value.events) ||
-      !value.events.every(
-        (event) => event === "wedding" || event === "reception",
-      ) ||
-      typeof value.transportation?.wedding !== "boolean" ||
-      typeof value.transportation?.reception !== "boolean" ||
-      typeof value.accommodation?.required !== "boolean" ||
-      !(
-        value.accommodation.rooms === null ||
-        typeof value.accommodation.rooms === "number"
-      ) ||
-      typeof value.foodAllergies !== "string" ||
-      typeof value.message !== "string"
-    )
-      return null;
-    return Object.keys(validateRsvp(valuesFromPayload(value))).length
-      ? null
-      : value;
+    const value: unknown = JSON.parse(stored);
+    return isRsvpPayload(value) ? value : null;
   } catch {
     return null;
   }
 }
 
-/** The future backend must validate this schema and deduplicate by submissionId. */
+class RsvpDeliveryError extends Error {}
+
 export async function submitRsvp(
   values: RsvpValues,
-  options: { endpoint?: string; submissionId?: string } = {},
+  options: {
+    endpoint?: string;
+    submissionId?: string;
+    invitation?: RsvpInvitation;
+  } = {},
 ): Promise<RsvpResult> {
   if (Object.keys(validateRsvp(values)).length)
     throw new Error("Please check your answers before saving your response.");
   const payload = buildRsvpPayload(values, options.submissionId);
-  const endpoint = options.endpoint ?? RSVP_ENDPOINT;
+  const invitation = options.invitation;
+  if (
+    invitation &&
+    (!invitation.token ||
+      !["wedding", "both"].includes(invitation.events) ||
+      (invitation.events === "wedding" && payload.events.includes("reception")))
+  ) {
+    throw new Error(
+      "Your invitation details have changed. Please reopen your invitation before sending your RSVP.",
+    );
+  }
+  const endpoint = invitation
+    ? `/api/invitations/${encodeURIComponent(invitation.token)}/rsvp`
+    : (options.endpoint ?? RSVP_ENDPOINT);
   if (!endpoint) {
     try {
       localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify(payload));
@@ -231,20 +282,34 @@ export async function submitRsvp(
       credentials: "omit",
     });
     if (!response.ok) {
-      throw new Error(
+      throw new RsvpDeliveryError(
         response.status === 429
           ? "Too many requests were received. Your answers are still here; please wait a moment and try again."
-          : "Your response could not be accepted. Your answers are still here; please check them and try again.",
+          : invitation && [401, 403, 404, 410].includes(response.status)
+            ? "This invitation is no longer available. Your response was not saved. Please contact Visakh or Archana for a current invitation link."
+            : invitation && response.status === 409
+              ? "Your invitation or response has changed. Your answers are still here; reopen your invitation to review the latest details before trying again."
+              : invitation && response.status === 422
+                ? "Your answers do not match the current invitation details. Please check your answers or reopen your invitation before trying again."
+                : "Your response could not be accepted. Your answers are still here; please check them and try again.",
       );
+    }
+    if (invitation) {
+      const accepted: unknown = await response.json();
+      const saved =
+        accepted && typeof accepted === "object" && "response" in accepted
+          ? accepted.response
+          : null;
+      if (!isRsvpPayload(saved)) {
+        throw new RsvpDeliveryError(
+          "We could not confirm that your response was received. Your answers are still here; please try again.",
+        );
+      }
+      return { delivery: "sent", payload: saved };
     }
     return { delivery: "sent", payload };
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message.startsWith("Your response") ||
-        error.message.startsWith("Too many"))
-    )
-      throw error;
+    if (error instanceof RsvpDeliveryError) throw error;
     throw new Error(
       "We could not confirm that your response was received. Your answers are still here; check your connection and try again.",
     );

@@ -108,11 +108,18 @@ export function createCalendarIcs(
   return `${lines.map(foldLine).join("\r\n")}\r\n`;
 }
 
-/** Downloads both the ceremony and reception as separate calendar events. */
-export function downloadWeddingCalendar(): void {
-  const blob = new Blob([createCalendarIcs()], {
-    type: "text/calendar;charset=utf-8",
-  });
+/** Downloads only the celebrations included in this invitation. */
+export function downloadWeddingCalendar(hasReception = true): void {
+  const blob = new Blob(
+    [
+      createCalendarIcs(
+        hasReception ? calendarEvents : [ceremonyCalendarEvent],
+      ),
+    ],
+    {
+      type: "text/calendar;charset=utf-8",
+    },
+  );
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
