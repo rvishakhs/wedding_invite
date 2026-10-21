@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="30" y1="20" x2="210" y2="230" gradientUnits="userSpaceOnUse"><stop stop-color="#85602c"/><stop offset=".35" stop-color="#c9a75d"/><stop offset=".55" stop-color="#9b773a"/><stop offset=".8" stop-color="#d1b575"/><stop offset="1" stop-color="#87642f"/></linearGradient>
+    <radialGradient id="petal"><stop stop-color="#fffef7"/><stop offset=".7" stop-color="#f1e9d5"/><stop offset="1" stop-color="#c8bda0"/></radialGradient>
+    <g id="flower"><ellipse cy="-4" rx="3" ry="5" fill="url(#petal)"/><ellipse cx="-4" cy="-1" rx="4" ry="3" transform="rotate(25)" fill="url(#petal)"/><ellipse cx="4" cy="-1" rx="4" ry="3" transform="rotate(-25)" fill="url(#petal)"/><ellipse cy="2" rx="3" ry="4" fill="url(#petal)"/><circle r="1.5" fill="#c8b57e"/></g>
+  </defs>
+  <!-- Bespoke high-contrast A and V, with a shared sweeping diagonal. -->
+  <path d="M92 20 169 218h-9L84 44 43 145c-4 11-1 15 13 15v3H23v-3c9-2 12-6 17-17L90 20Zm-34 99h69l3 5H56Z" fill="url(#gold)"/>
+  <path d="M121 111h37v3c-12 0-14 4-10 15l25 67 31-72c3-8-1-10-12-10v-3h34v3c-10 1-14 5-18 14l-39 91h-4l-37-94c-3-8-5-10-12-11Z" fill="url(#gold)"/>
+  <path d="M49 144C-8 125 31 66 99 90c46 16 61 45 105 30 29-10 38 11 23 24M132 143c-68-14-98 39-64 55 16 8 37 2 46-8" stroke="url(#gold)" stroke-width="1.4"/>
+  <g stroke="#7c7e51" stroke-width="1.2" stroke-linecap="round">
+    <path d="M139 137c27-26 41-59 39-93m-11 54 28-25m-19 4-16-20m17 8 16-19m-33 69 31-9M133 211c-25-15-41-32-49-57m18 33-24-9m14-8 8-16"/>
+    <path d="M155 117q9-18 26-20-7 15-26 20M166 97q-15-10-14-23 12 7 14 23M113 197q-23-4-29 8 18-8 29-8M100 183q-2-17 7-25 3 15-7 25" fill="#96936b" stroke="none"/>
+  </g>
+  <g><use href="#flower" x="178" y="43"/><use href="#flower" x="160" y="56"/><use href="#flower" x="194" y="45"/><use href="#flower" x="195" y="72"/><use href="#flower" x="191" y="105"/><use href="#flower" x="84" y="151"/><use href="#flower" x="77" y="177"/><use href="#flower" x="101" y="151"/></g>
+</svg>

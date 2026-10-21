@@ -84,3 +84,9 @@ Global scrollbars have thumb, track, hover, active and forced-colors behavior. R
 - Keep the wedding and reception programs separately accessible in the same timeline pattern.
 - Never invent an RSVP deadline or imply an unsent local draft reached the hosts.
 - Never add backend accounts or server persistence until requested and connected.
+
+## Reference refinements
+
+The October 2026 refinement uses a path-based gold A/V monogram with small ivory blossoms (`public/monogram.svg`), without names underneath. It replaces the header initials and preserves the accessible invitation link. The jewellery illustration in `src/components/Rings.tsx` uses bevelled gold bands, overlapping perspective, and faceted stones inspired by the supplied ring reference; it is vector artwork, not a photograph. Each instance owns unique gradient IDs. Background placements stay translucent to protect timeline and RSVP lettering.
+
+Hero and footer photographs fade vertically into their adjacent paper/white surfaces by masking the entire photo, shade and blur composition together with eased alpha stops and fully transparent edge pixels. The unmasked paper surface matches adjacent sections exactly; text stays outside the masked artwork. The hero shade is restrained to avoid a dark stripe at the start of the fade. Venue sections also blend into white at their edges rather than using hard divider rules. These local illustration and photo gradients are composition details; the shared palette and typography remain unchanged.

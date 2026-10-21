@@ -21,62 +21,10 @@ import {
   Flower2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Rings } from "./components/Rings";
 import { RsvpPage } from "./components/RsvpPage";
 import { wedding, weddingEvents, receptionEvents } from "./data/wedding";
 import { downloadWeddingCalendar } from "./lib/calendar";
-
-function Rings({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 120 85"
-      fill="none"
-      aria-hidden="true"
-    >
-      <ellipse
-        cx="48"
-        cy="48"
-        rx="29"
-        ry="24"
-        transform="rotate(-30 48 48)"
-        stroke="currentColor"
-        strokeWidth="2.5"
-      />
-      <ellipse
-        cx="76"
-        cy="48"
-        rx="29"
-        ry="24"
-        transform="rotate(30 76 48)"
-        stroke="currentColor"
-        strokeWidth="2.5"
-      />
-      <ellipse
-        cx="48"
-        cy="48"
-        rx="24"
-        ry="19"
-        transform="rotate(-30 48 48)"
-        stroke="currentColor"
-        strokeWidth=".7"
-      />
-      <ellipse
-        cx="76"
-        cy="48"
-        rx="24"
-        ry="19"
-        transform="rotate(30 76 48)"
-        stroke="currentColor"
-        strokeWidth=".7"
-      />
-      <path
-        d="m51 24 7-11h12l7 11-13 12-13-12Zm0 0h26M58 13l6 23 6-23"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-    </svg>
-  );
-}
 
 function SectionTitle({
   script,
@@ -280,7 +228,7 @@ function App() {
           aria-label="Visakh and Archana, invitation"
           onClick={isRsvp ? returnToInvitation : undefined}
         >
-          V<span>&</span>A
+          <img src="/monogram.svg" alt="" width="64" height="64" />
         </a>
         <nav aria-label="Main navigation">
           <a
@@ -310,22 +258,24 @@ function App() {
               id="invitation"
               aria-label="Visakh and Archana are getting married"
             >
-              <div className="hero-blur" />
-              <picture>
-                <source
-                  media="(max-width: 600px)"
-                  srcSet="/images/hero-mobile.webp"
-                />
-                <img
-                  className="hero-photo"
-                  src="/images/hero.webp"
-                  alt="Visakh and Archana together beneath warm fairy lights"
-                  width="1086"
-                  height="1448"
-                  fetchPriority="high"
-                />
-              </picture>
-              <div className="hero-shade" />
+              <div className="photo-artwork hero-artwork">
+                <div className="hero-blur" />
+                <picture>
+                  <source
+                    media="(max-width: 600px)"
+                    srcSet="/images/hero-mobile.webp"
+                  />
+                  <img
+                    className="hero-photo"
+                    src="/images/hero.webp"
+                    alt="Visakh and Archana together beneath warm fairy lights"
+                    width="1086"
+                    height="1448"
+                    fetchPriority="high"
+                  />
+                </picture>
+                <div className="hero-shade" />
+              </div>
               <div className="hero-top">
                 <span>Two hearts. One beautiful beginning.</span>
               </div>
@@ -547,14 +497,16 @@ function App() {
             </section>
 
             <footer className="photo-footer">
-              <img
-                src="/images/together.webp"
-                alt="Visakh and Archana sharing a quiet, happy moment"
-                width="1086"
-                height="1448"
-                loading="lazy"
-              />
-              <div className="footer-shade" />
+              <div className="photo-artwork footer-artwork">
+                <img
+                  src="/images/together.webp"
+                  alt="Visakh and Archana sharing a quiet, happy moment"
+                  width="1086"
+                  height="1448"
+                  loading="lazy"
+                />
+                <div className="footer-shade" />
+              </div>
               <div className="footer-copy">
                 <p className="eyebrow">Save our date</p>
                 <p className="footer-date">
@@ -571,7 +523,7 @@ function App() {
             </footer>
             <div className="colophon">
               <span>
-                Visakh S R <Heart size={11} /> Archana A
+                Visakh<Heart size={11} /> Archana
               </span>
               <a href="#invitation">Back to the beginning ↑</a>
             </div>

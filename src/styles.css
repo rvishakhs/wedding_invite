@@ -226,7 +226,7 @@ textarea:focus-visible,
   overflow: hidden;
   color: var(--white);
   isolation: isolate;
-  background: #393c2a;
+  background: linear-gradient(var(--paper), var(--white));
 }
 .hero-blur {
   position: absolute;
@@ -261,7 +261,8 @@ textarea:focus-visible,
     rgba(12, 16, 9, 0.22),
     transparent 32%,
     rgba(16, 20, 11, 0.03) 43%,
-    rgba(15, 19, 12, 0.8) 100%
+    rgba(15, 19, 12, 0.55) 75%,
+    rgba(15, 19, 12, 0.25) 100%
   );
   z-index: -1;
 }
@@ -852,10 +853,10 @@ textarea:focus-visible,
   isolation: isolate;
   min-height: 650px;
   overflow: hidden;
-  background: #3d362a;
+  background: linear-gradient(var(--white), var(--paper));
   color: #fff;
 }
-.photo-footer > img {
+.footer-artwork > img {
   position: absolute;
   inset: 0;
   height: 100%;
@@ -1362,7 +1363,7 @@ textarea:focus-visible,
   .footer-copy {
     min-height: 640px;
   }
-  .photo-footer > img {
+  .footer-artwork > img {
     object-position: center 25%;
   }
   .photo-footer .footer-shade {
@@ -1453,5 +1454,126 @@ textarea:focus-visible,
   .footer-copy {
     background: Canvas;
     color: CanvasText;
+  }
+}
+
+/* Fade the entire photo composition, including its shade and blurred backing.
+   Eased alpha stops avoid the visible crease of a short, linear white overlay.
+   The first/last 2px are fully clear to prevent subpixel seams at section edges. */
+.photo-artwork {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  isolation: isolate;
+  overflow: hidden;
+  pointer-events: none;
+  --photo-mask: linear-gradient(
+    to bottom,
+    #0000 0px,
+    #0000 2px,
+    #00000008 calc(var(--photo-fade-top) * .125),
+    #00000026 calc(var(--photo-fade-top) * .25),
+    #00000051 calc(var(--photo-fade-top) * .375),
+    #00000080 calc(var(--photo-fade-top) * .5),
+    #000000ae calc(var(--photo-fade-top) * .625),
+    #000000d9 calc(var(--photo-fade-top) * .75),
+    #000000f7 calc(var(--photo-fade-top) * .875),
+    #000 var(--photo-fade-top),
+    #000 calc(100% - var(--photo-fade-bottom)),
+    #000000f7 calc(100% - var(--photo-fade-bottom) * .875),
+    #000000d9 calc(100% - var(--photo-fade-bottom) * .75),
+    #000000ae calc(100% - var(--photo-fade-bottom) * .625),
+    #00000080 calc(100% - var(--photo-fade-bottom) * .5),
+    #00000051 calc(100% - var(--photo-fade-bottom) * .375),
+    #00000026 calc(100% - var(--photo-fade-bottom) * .25),
+    #00000008 calc(100% - var(--photo-fade-bottom) * .125),
+    #0000 calc(100% - 2px),
+    #0000 100%
+  );
+  -webkit-mask-image: var(--photo-mask);
+  mask-image: var(--photo-mask);
+}
+.hero {
+  --photo-fade-top: 160px;
+  --photo-fade-bottom: 160px;
+}
+.hero-artwork {
+  background: #393c2a;
+}
+.footer-artwork {
+  background: #3d362a;
+}
+.hero-top {
+  top: 36px;
+  color: var(--ink);
+}
+.hero-copy {
+  bottom: 135px;
+}
+.hero-scroll {
+  color: var(--ink);
+  border-color: var(--line);
+  background: #faf9f6a6;
+}
+.hero-scroll:hover {
+  background: var(--paper);
+}
+.photo-footer {
+  --photo-fade-top: 160px;
+  --photo-fade-bottom: 160px;
+}
+.footer-copy {
+  padding-block: 115px 125px;
+}
+.venues {
+  border: 0;
+  background: linear-gradient(var(--white), var(--paper) 100px, var(--paper) calc(100% - 100px), var(--white));
+}
+.monogram {
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+.monogram img {
+  width: 64px;
+  height: 64px;
+}
+.monogram:hover {
+  opacity: 0.75;
+}
+.timeline-rings {
+  width: 460px;
+  opacity: 0.19;
+}
+.rsvp-rings {
+  opacity: 0.32;
+  pointer-events: none;
+}
+@media (max-width: 600px) {
+  .monogram img {
+    width: 49px;
+    height: 49px;
+  }
+  .hero {
+    --photo-fade-top: 125px;
+    --photo-fade-bottom: 140px;
+    min-height: 760px;
+  }
+  .hero-top {
+    top: 25px;
+  }
+  .hero-copy {
+    bottom: 116px;
+  }
+  .photo-footer {
+    --photo-fade-top: 140px;
+    --photo-fade-bottom: 140px;
+  }
+  .footer-copy {
+    padding: 250px 24px 115px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monogram {
+    transition: none;
   }
 }
